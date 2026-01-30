@@ -18,6 +18,11 @@ export default function Navbar() {
                     pathName === "/contact" ? "text-primary" : "text-muted-foreground")}>
                 Liên hệ
             </Link>
+            <Link href={"/product"}
+                className={cn("transition-colors hover:text-primary",
+                    pathName === "/product" ? "text-primary" : "text-muted-foreground")}>
+                Sản phẩm
+            </Link>
         </nav>
     )
 }

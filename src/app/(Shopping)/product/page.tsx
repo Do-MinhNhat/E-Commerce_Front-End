@@ -1,65 +1,133 @@
-import Image from "next/image";
+'use client';
 
-export default function Product() {
+import { useEffect, useState } from 'react';
+import { ProductCard } from '@/components/features/ProductCard';
+import { CategoryFilter } from '@/components/features/CategoryFilter';
+import { Pagination } from '@/components/features/Pagination';
+import { ProductGridSkeleton } from '@/components/features/ProductGridSkeleton';
+import { type Product, type ProductsResponse } from '@/types/product';
+
+export default function ProductPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; page?: string }>;
+}) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [skip, setSkip] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+
+  const limit = 12;
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Load categories
+        const categoriesRes = await fetch('/api/categories');
+        if (!categoriesRes.ok) throw new Error('Failed to load categories');
+        const categoriesData = await categoriesRes.json();
+        setCategories(categoriesData.categories);
+
+        // Load products
+        const params = new URLSearchParams({
+          skip: skip.toString(),
+          limit: limit.toString(),
+        });
+
+        if (selectedCategory) {
+          params.append('category', selectedCategory);
+        }
+
+        const productsRes = await fetch(`/api/products?${params.toString()}`);
+        if (!productsRes.ok) throw new Error('Failed to load products');
+        const productsData: ProductsResponse = await productsRes.json();
+        setProducts(productsData.products);
+        setTotal(productsData.total);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [skip, selectedCategory]);
+
+  const handleCategoryChange = (category: string | undefined) => {
+    setSelectedCategory(category);
+    setSkip(0);
+  };
+
+  const handlePageChange = (newSkip: number) => {
+    setSkip(newSkip);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="w-full">
+      {/* Page Header */}
+      <div className="mb-6 sm:mb-8 px-4 sm:px-0">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          All Products
+        </h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          Browse our collection of quality products
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 sm:mb-8 flex gap-4 flex-wrap px-4 sm:px-0">
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 sm:mb-8 rounded-lg bg-red-50 p-4 text-red-800 dark:bg-red-900 dark:text-red-100 mx-4 sm:mx-0">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="px-4 sm:px-0">
+          <ProductGridSkeleton count={limit} />
+        </div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-12 px-4">
+          <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
+            No products found. Try a different category.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      ) : (
+        <>
+          {/* Products Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 mb-8 px-4 sm:px-0">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="px-4 sm:px-0">
+            <Pagination
+              skip={skip}
+              limit={limit}
+              total={total}
+              onPageChange={handlePageChange}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          </div>
+        </>
+      )}
     </div>
   );
 }

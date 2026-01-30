@@ -1,0 +1,73 @@
+'use client';
+
+import { Product } from '@/types/product';
+import { formatPrice, calculateDiscountedPrice } from '@/lib/utils';
+import Link from 'next/link';
+import Image from 'next/image';
+
+interface ProductCardProps {
+    product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
+    const discountedPrice = calculateDiscountedPrice(product.price, product.discountPercentage);
+
+    return (
+        <Link href={`/products/${product.id}`}>
+            <div className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md active:shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                {/* Image Container */}
+                <div className="relative h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    <Image
+                        src={product.thumbnail}
+                        alt={product.title}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-110"
+                    />
+                    {product.discountPercentage > 0 && (
+                        <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-semibold">
+                            -{product.discountPercentage.toFixed(0)}%
+                        </div>
+                    )}
+                </div>
+
+                {/* Content */}
+                <div className="p-2 sm:p-3 md:p-4">
+                    {/* Title */}
+                    <h3 className="line-clamp-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                        {product.title}
+                    </h3>
+
+                    {/* Category Badge */}
+                    <div className="mb-2 sm:mb-3 inline-block">
+                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 px-2 py-0.5 sm:py-1 rounded text-nowrap">
+                            {product.category}
+                        </span>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 mb-2 sm:mb-3 flex-wrap">
+                        <span className="text-yellow-500 text-sm">★</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {product.rating.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
+                            ({product.stock > 0 ? 'In Stock' : 'Out of Stock'})
+                        </span>
+                    </div>
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                            {formatPrice(discountedPrice)}
+                        </span>
+                        {product.discountPercentage > 0 && (
+                            <span className="text-xs sm:text-sm text-gray-500 line-through dark:text-gray-400">
+                                {formatPrice(product.price)}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </Link>
+    );
+}
