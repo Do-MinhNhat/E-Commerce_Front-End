@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PATH } from '@/lib/route';
 
 export default function Home() {
   return (
@@ -13,7 +14,7 @@ export default function Home() {
             Discover amazing products at unbeatable prices. Browse our extensive collection of quality items.
           </p>
           <Link
-            href="/products"
+            href={PATH.products}
             className="inline-block bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center justify-center"
           >
             Shop Now
@@ -35,7 +36,7 @@ export default function Home() {
           ].map((category) => (
             <Link
               key={category}
-              href={`/products?category=${category}`}
+              href={`${PATH.products}?category=${category}`}
               className="group rounded-lg border border-gray-200 p-3 sm:p-6 hover:shadow-lg active:shadow-lg transition-shadow dark:border-gray-700 touch-manipulation"
             >
               <div className="h-24 sm:h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg mb-3 sm:mb-4 group-hover:scale-105 transition-transform" />

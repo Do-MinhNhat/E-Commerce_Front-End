@@ -2,6 +2,9 @@
 export interface Category {
     name: string;
     slug: string;
+    url: string;
 }
 
-export type CategoryName = string;
+export interface CategoriesResponse {
+    categories: Category[];
+}

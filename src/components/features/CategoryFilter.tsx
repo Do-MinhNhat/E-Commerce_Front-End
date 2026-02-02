@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import { Category } from '@/types/category';
 import { useState } from 'react';
 
 interface CategoryFilterProps {
-    categories: string[];
+    categories: Category[];
     selectedCategory?: string;
     onCategoryChange: (category: string | undefined) => void;
 }
@@ -15,14 +15,18 @@ export function CategoryFilter({
     onCategoryChange,
 }: CategoryFilterProps) {
     const [isOpen, setIsOpen] = useState(false);
-
     return (
         <div className="relative w-full sm:w-auto">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors min-h-[44px] sm:min-h-auto"
             >
-                <span className="truncate">{selectedCategory ? `Category: ${selectedCategory}` : 'All Categories'}</span>
+                <span className="truncate">
+                    {selectedCategory
+                        ? `Category: ${categories.find(cat => cat.slug === selectedCategory)?.name || selectedCategory}`
+                        : 'All Categories'
+                    }
+                </span>
                 <svg
                     className={`h-4 w-4 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
@@ -44,19 +48,19 @@ export function CategoryFilter({
                     >
                         All Categories
                     </button>
-                    {categories.map((category) => (
+                    {categories.map((category, index) => (
                         <button
-                            key={category}
+                            key={`${category.slug}-${index}`}
                             onClick={() => {
-                                onCategoryChange(category);
+                                onCategoryChange(category.slug);
                                 setIsOpen(false);
                             }}
-                            className={`block w-full px-4 py-3 text-left text-sm transition-colors min-h-[44px] flex items-center ${selectedCategory === category
-                                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
-                                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                            className={`block w-full px-4 py-3 text-left text-sm transition-colors min-h-[44px] flex items-center ${selectedCategory === category.slug
+                                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
+                                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                 }`}
                         >
-                            {category}
+                            {category.name}
                         </button>
                     ))}
                 </div>

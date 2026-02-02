@@ -4,6 +4,7 @@ import { Product } from '@/types/product';
 import { formatPrice, calculateDiscountedPrice } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface ProductCardProps {
     product: Product;
@@ -11,10 +12,35 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
     const discountedPrice = calculateDiscountedPrice(product.price, product.discountPercentage);
+    const [addedToCart, setAddedToCart] = useState(false);
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+        const existingItem = cartItems.find((item: any) => item.id === product.id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cartItems.push({
+                id: product.id,
+                title: product.title,
+                price: discountedPrice,
+                thumbnail: product.thumbnail,
+                quantity: 1,
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cartItems));
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2000);
+    };
 
     return (
-        <Link href={`/products/${product.id}`}>
-            <div className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md active:shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md active:shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <Link href={`/product/${product.id}`}>
                 {/* Image Container */}
                 <div className="relative h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <Image
@@ -56,7 +82,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-baseline gap-2 flex-wrap">
+                    <div className="flex items-baseline gap-2 flex-wrap mb-3">
                         <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                             {formatPrice(discountedPrice)}
                         </span>
@@ -67,7 +93,20 @@ export function ProductCard({ product }: ProductCardProps) {
                         )}
                     </div>
                 </div>
-            </div>
-        </Link>
+            </Link>
+
+            {/* Add to Cart Button */}
+            <button
+                onClick={handleAddToCart}
+                disabled={product.stock === 0 || addedToCart}
+                className="w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-t border-gray-200 dark:border-gray-700 transition-colors min-h-10 sm:min-h-11 touch-manipulation active:opacity-90"
+                style={{
+                    backgroundColor: addedToCart ? '#10b981' : product.stock === 0 ? '#9ca3af' : '#3b82f6',
+                    color: 'white',
+                }}
+            >
+                {addedToCart ? '✓ Added to Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </button>
+        </div>
     );
 }

@@ -1,19 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProductCard } from '@/components/features/ProductCard';
 import { CategoryFilter } from '@/components/features/CategoryFilter';
 import { Pagination } from '@/components/features/Pagination';
 import { ProductGridSkeleton } from '@/components/features/ProductGridSkeleton';
 import { type Product, type ProductsResponse } from '@/types/product';
+import { CategoriesResponse, Category } from '@/types/category';
 
 export default function ProductPage({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string; page?: string }>;
 }) {
+  const params = use(searchParams);
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [skip, setSkip] = useState(0);
@@ -21,6 +26,14 @@ export default function ProductPage({
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
 
   const limit = 12;
+
+  // Initialize state from URL parameters
+  useEffect(() => {
+    const pageNum = params.page ? parseInt(params.page, 10) : 1;
+    const newSkip = (pageNum - 1) * limit;
+    setSkip(newSkip);
+    setSelectedCategory(params.category);
+  }, [params.category, params.page, limit]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -31,20 +44,20 @@ export default function ProductPage({
         // Load categories
         const categoriesRes = await fetch('/api/categories');
         if (!categoriesRes.ok) throw new Error('Failed to load categories');
-        const categoriesData = await categoriesRes.json();
+        const categoriesData: CategoriesResponse = await categoriesRes.json();
         setCategories(categoriesData.categories);
 
         // Load products
-        const params = new URLSearchParams({
+        const queryParams = new URLSearchParams({
           skip: skip.toString(),
           limit: limit.toString(),
         });
 
         if (selectedCategory) {
-          params.append('category', selectedCategory);
+          queryParams.append('category', selectedCategory);
         }
 
-        const productsRes = await fetch(`/api/products?${params.toString()}`);
+        const productsRes = await fetch(`/api/products?${queryParams.toString()}`);
         if (!productsRes.ok) throw new Error('Failed to load products');
         const productsData: ProductsResponse = await productsRes.json();
         setProducts(productsData.products);
@@ -57,15 +70,27 @@ export default function ProductPage({
     };
 
     loadData();
-  }, [skip, selectedCategory]);
+  }, [skip, selectedCategory, limit]);
 
   const handleCategoryChange = (category: string | undefined) => {
-    setSelectedCategory(category);
-    setSkip(0);
+    // Navigate with new category and reset to page 1
+    const newParams = new URLSearchParams();
+    if (category) {
+      newParams.set('category', category);
+    }
+    newParams.set('page', '1');
+    router.push(`?${newParams.toString()}`);
   };
 
   const handlePageChange = (newSkip: number) => {
-    setSkip(newSkip);
+    // Navigate with new page number
+    const pageNum = (newSkip / limit) + 1;
+    const newParams = new URLSearchParams();
+    if (selectedCategory) {
+      newParams.set('category', selectedCategory);
+    }
+    newParams.set('page', pageNum.toString());
+    router.push(`?${newParams.toString()}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
