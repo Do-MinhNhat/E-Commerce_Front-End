@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Product } from '@/types/product';
 import { formatPrice, calculateDiscountedPrice } from '@/lib/utils';
 import { ProductDetailSkeleton } from '@/components/features/ProductDetailSkeleton';
+import { ProductGridSkeleton } from '@/components/features/ProductGridSkeleton';
+import { ProductCard } from '@/components/features/ProductCard';
 
 export default function ProductDetailPage({
     params,
@@ -17,6 +19,9 @@ export default function ProductDetailPage({
     const [error, setError] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [params_resolved, setParamsResolved] = useState<{ slug: string } | null>(null);
+    const [tagRecommendations, setTagRecommendations] = useState<Product[]>([]);
+    const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string>('');
 
     useEffect(() => {
         params.then(setParamsResolved);
@@ -42,6 +47,35 @@ export default function ProductDetailPage({
 
         loadProduct();
     }, [params_resolved]);
+
+    useEffect(() => {
+        if (!product) return;
+
+        const loadRecommendations = async () => {
+            try {
+                setLoadingRecommendations(true);
+                const res = await fetch('/api/products');
+                if (!res.ok) throw new Error('Failed to load recommendations');
+                const data = await res.json();
+                const allProducts: Product[] = data.products;
+
+                // Filter products with matching tags and randomize
+                const tagMatches = allProducts
+                    .filter((p: Product) => p.id !== product.id && p.tags?.some(tag => product.tags?.includes(tag)))
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 8);
+
+                setTagRecommendations(tagMatches);
+                setSelectedImage(product.images && product.images.length > 0 ? product.images[0] : product.thumbnail);
+            } catch (err) {
+                console.error('Error loading recommendations:', err);
+            } finally {
+                setLoadingRecommendations(false);
+            }
+        };
+
+        loadRecommendations();
+    }, [product]);
 
     if (isLoading) {
         return (
@@ -71,11 +105,11 @@ export default function ProductDetailPage({
                 <Link href="/" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 whitespace-nowrap">
                     Home
                 </Link>
-                <span className="text-gray-500 flex-shrink-0">/</span>
+                <span className="text-gray-500 shrink-0">/</span>
                 <Link href="/products" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 whitespace-nowrap">
                     Products
                 </Link>
-                <span className="text-gray-500 flex-shrink-0">/</span>
+                <span className="text-gray-500 shrink-0">/</span>
                 <span className="text-gray-700 dark:text-gray-300 truncate">{product.title}</span>
             </div>
 
@@ -84,22 +118,27 @@ export default function ProductDetailPage({
                 <div>
                     <div className="mb-3 sm:mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square relative">
                         <Image
-                            src={product.thumbnail}
+                            src={selectedImage || product.thumbnail}
                             alt={product.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             priority
                         />
                     </div>
                     {product.images && product.images.length > 0 && (
                         <div className="grid grid-cols-4 gap-2">
                             {product.images.slice(0, 4).map((image, idx) => (
-                                <div key={idx} className="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square relative cursor-pointer hover:opacity-80 active:opacity-60 transition-opacity">
+                                <div
+                                    key={idx}
+                                    onClick={() => setSelectedImage(image)}
+                                    className={`rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square relative cursor-pointer hover:opacity-80 active:opacity-60 transition-opacity border-2 ${selectedImage === image ? 'border-blue-600 dark:border-blue-400' : 'border-transparent'
+                                        }`}
+                                >
                                     <Image
                                         src={image}
                                         alt={`${product.title} ${idx + 1}`}
                                         fill
-                                        className="object-cover"
+                                        className="object-contain"
                                     />
                                 </div>
                             ))}
@@ -212,7 +251,7 @@ export default function ProductDetailPage({
                     {/* Add to Cart */}
                     {product.stock > 0 && (
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-[44px]">
+                            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-11">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                     className="flex-1 px-3 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-semibold text-lg"
@@ -231,7 +270,7 @@ export default function ProductDetailPage({
                                     +
                                 </button>
                             </div>
-                            <button className="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center justify-center text-base sm:text-lg">
+                            <button className="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors touch-manipulation min-h-11 flex items-center justify-center text-base sm:text-lg">
                                 Add to Cart
                             </button>
                         </div>
@@ -239,19 +278,40 @@ export default function ProductDetailPage({
                 </div>
             </div>
 
-            {/* Related Products Section */}
-            <div className="mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-0">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8">
-                    Continue Shopping
-                </h2>
-                <div className="text-center">
-                    <Link
-                        href="/products"
-                        className="inline-block bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center justify-center"
-                    >
-                        View All Products
-                    </Link>
-                </div>
+            {/* Recommendations Section */}
+            <div className="mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-gray-200 dark:border-gray-700">
+                {/* Tag-Based Recommendations */}
+                {tagRecommendations.length > 0 && (
+                    <div className="mb-12 sm:mb-16">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8 px-4 sm:px-0">
+                            Similar Products
+                        </h2>
+                        {loadingRecommendations ? (
+                            <ProductGridSkeleton count={8} />
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 px-4 sm:px-0">
+                                {tagRecommendations.map((p) => (
+                                    <ProductCard key={p.id} product={p} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* If no recommendations */}
+                {tagRecommendations.length === 0 && (
+                    <div className="text-center px-4 sm:px-0">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8">
+                            Continue Shopping
+                        </h2>
+                        <Link
+                            href="/products"
+                            className="flex bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-colors touch-manipulation min-h-11 items-center justify-center"
+                        >
+                            View All Products
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );

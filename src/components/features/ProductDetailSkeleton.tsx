@@ -97,7 +97,7 @@ export function ProductDetailSkeleton() {
 
                     {/* Add to Cart Skeleton */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                        <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-[44px]">
+                        <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-11">
                             <Skeleton className="flex-1 h-10 sm:h-12 rounded-none" />
                             <Skeleton className="flex-1 h-10 sm:h-12 rounded-none" />
                             <Skeleton className="flex-1 h-10 sm:h-12 rounded-none" />

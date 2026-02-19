@@ -40,51 +40,69 @@ export function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <div className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md active:shadow-lg dark:border-gray-700 dark:bg-gray-800">
-            <Link href={PATH.productDetail(product.id)}>
-                {/* Image Container */}
-                <div className="relative h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+        <div className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 transition-all duration-300 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600">
+            {/* Image Container */}
+            <Link href={PATH.productDetail(product.id)} className="relative overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
+                <div className="relative h-40 sm:h-48 md:h-56 w-full overflow-hidden flex items-center justify-center">
                     <Image
                         src={product.thumbnail}
                         alt={product.title}
                         fill
-                        className="object-cover transition-transform group-hover:scale-110"
+                        className="object-contain transition-transform duration-500 group-hover:scale-110"
                     />
+
+                    {/* Discount Badge */}
                     {product.discountPercentage > 0 && (
-                        <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-semibold">
+                        <div className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
                             -{product.discountPercentage.toFixed(0)}%
                         </div>
                     )}
+
+                    {/* Stock Badge */}
+                    {product.stock === 0 && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <span className="text-white font-bold text-sm sm:text-base">Out of Stock</span>
+                        </div>
+                    )}
+                </div>
+            </Link>
+
+            {/* Content */}
+            <div className="flex flex-col flex-1 p-3 sm:p-4">
+                {/* Category */}
+                <div className="mb-2">
+                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                        {product.category}
+                    </span>
                 </div>
 
-                {/* Content */}
-                <div className="p-2 sm:p-3 md:p-4">
-                    {/* Title */}
-                    <h3 className="line-clamp-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                {/* Title */}
+                <Link href={PATH.productDetail(product.id)}>
+                    <h3 className="line-clamp-2 text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                         {product.title}
                     </h3>
+                </Link>
 
-                    {/* Category Badge */}
-                    <div className="mb-2 sm:mb-3 inline-block">
-                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 px-2 py-0.5 sm:py-1 rounded text-nowrap">
-                            {product.category}
-                        </span>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-1 mb-2 sm:mb-3 flex-wrap">
-                        <span className="text-yellow-500 text-sm">★</span>
-                        <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                {/* Rating & Stock Info */}
+                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center gap-1.5">
+                        <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                                <span key={i} className={`text-xs sm:text-sm ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}>
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                             {product.rating.toFixed(1)}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
-                            ({product.stock > 0 ? 'In Stock' : 'Out of Stock'})
-                        </span>
                     </div>
+                </div>
 
-                    {/* Price */}
-                    <div className="flex items-baseline gap-2 flex-wrap mb-3">
-                        <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                {/* Price */}
+                <div className="mb-auto pb-3">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                             {formatPrice(discountedPrice)}
                         </span>
                         {product.discountPercentage > 0 && (
@@ -94,17 +112,18 @@ export function ProductCard({ product }: ProductCardProps) {
                         )}
                     </div>
                 </div>
-            </Link>
+            </div>
 
             {/* Add to Cart Button */}
             <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0 || addedToCart}
-                className="w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold border-t border-gray-200 dark:border-gray-700 transition-colors min-h-10 sm:min-h-11 touch-manipulation active:opacity-90"
-                style={{
-                    backgroundColor: addedToCart ? '#10b981' : product.stock === 0 ? '#9ca3af' : '#3b82f6',
-                    color: 'white',
-                }}
+                className={`w-full px-3 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-all duration-300 min-h-11 sm:min-h-12 touch-manipulation ${addedToCart
+                    ? 'bg-green-500 text-white'
+                    : product.stock === 0
+                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
+                    }`}
             >
                 {addedToCart ? '✓ Added to Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
             </button>
