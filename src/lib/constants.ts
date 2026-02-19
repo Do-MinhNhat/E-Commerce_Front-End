@@ -24,4 +24,5 @@ export const PATH = {
     products: '/products',
     productDetail: (id: number | string) => `/products/${id}`,
     categories: '/categories',
+    checkout: '/checkout',
 }

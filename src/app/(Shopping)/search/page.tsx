@@ -5,21 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ProductCard } from '@/components/features/ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface Product {
-    id: number;
-    title: string;
-    price: number;
-    thumbnail: string;
-    category: string;
-    description: string;
-    discountPercentage: number;
-    rating: number;
-    stock: number;
-    brand: string;
-    images: string[];
-    tags: string[];
-}
+import { Product } from '@/types/product';
 
 export default function SearchPage() {
     const searchParams = useSearchParams();

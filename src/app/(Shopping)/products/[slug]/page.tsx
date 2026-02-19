@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { Product } from '@/types/product';
 import { formatPrice, calculateDiscountedPrice } from '@/lib/utils';
 import { ProductDetailSkeleton } from '@/components/features/ProductDetailSkeleton';
-import { ProductGridSkeleton } from '@/components/features/ProductGridSkeleton';
-import { ProductCard } from '@/components/features/ProductCard';
+import { ProductRecommendations } from '@/app/(Shopping)/products/components/ProductRecommendations';
+import { ProductReviews } from '@/app/(Shopping)/products/components/ProductReviews';
+import { useCart } from '@/hooks/useCart';
 
 export default function ProductDetailPage({
     params,
@@ -22,6 +23,10 @@ export default function ProductDetailPage({
     const [tagRecommendations, setTagRecommendations] = useState<Product[]>([]);
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string>('');
+    const [reviewPage, setReviewPage] = useState(1);
+    const [selectedStarFilter, setSelectedStarFilter] = useState<number | null>(null);
+    const [addedToCart, setAddedToCart] = useState(false);
+    const { addToCart, isInCart } = useCart();
 
     useEffect(() => {
         params.then(setParamsResolved);
@@ -48,27 +53,53 @@ export default function ProductDetailPage({
         loadProduct();
     }, [params_resolved]);
 
+    // Set selected image when product loads
+    useEffect(() => {
+        if (product) {
+            setSelectedImage(product.images && product.images.length > 0 ? product.images[0] : product.thumbnail);
+        }
+    }, [product]);
+
+    // Load recommendations
     useEffect(() => {
         if (!product) return;
 
         const loadRecommendations = async () => {
             try {
                 setLoadingRecommendations(true);
-                const res = await fetch('/api/products');
+
+                // Fetch products from the same category
+                const res = await fetch(`/api/products?category=${encodeURIComponent(product.category)}&limit=30`);
                 if (!res.ok) throw new Error('Failed to load recommendations');
                 const data = await res.json();
-                const allProducts: Product[] = data.products;
+                const categoryProducts: Product[] = data.products;
 
-                // Filter products with matching tags and randomize
-                const tagMatches = allProducts
-                    .filter((p: Product) => p.id !== product.id && p.tags?.some(tag => product.tags?.includes(tag)))
-                    .sort(() => Math.random() - 0.5)
-                    .slice(0, 8);
+                // Filter out current product
+                const otherProducts = categoryProducts.filter((p: Product) => p.id !== product.id);
 
-                setTagRecommendations(tagMatches);
-                setSelectedImage(product.images && product.images.length > 0 ? product.images[0] : product.thumbnail);
+                // Prioritize products with matching tags
+                const withMatchingTags: Product[] = [];
+                const withoutMatchingTags: Product[] = [];
+
+                otherProducts.forEach((p: Product) => {
+                    const hasMatchingTag = product.tags?.some(tag => p.tags?.includes(tag));
+                    if (hasMatchingTag) {
+                        withMatchingTags.push(p);
+                    } else {
+                        withoutMatchingTags.push(p);
+                    }
+                });
+
+                // Combine: tag matches first, then others, randomize and limit to 8
+                const recommendations = [
+                    ...withMatchingTags.sort(() => Math.random() - 0.5),
+                    ...withoutMatchingTags.sort(() => Math.random() - 0.5)
+                ].slice(0, 8);
+
+                setTagRecommendations(recommendations);
             } catch (err) {
                 console.error('Error loading recommendations:', err);
+                setTagRecommendations([]);
             } finally {
                 setLoadingRecommendations(false);
             }
@@ -250,69 +281,90 @@ export default function ProductDetailPage({
 
                     {/* Add to Cart */}
                     {product.stock > 0 && (
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-11">
+                        <div className="flex flex-col gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-11">
+                                    <button
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        disabled={quantity <= 1}
+                                        className="flex-1 px-3 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                        title="Decrease quantity"
+                                    >
+                                        −
+                                    </button>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={product.stock}
+                                        value={quantity}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '') {
+                                                setQuantity(1);
+                                            } else {
+                                                const num = parseInt(value);
+                                                if (!isNaN(num)) {
+                                                    setQuantity(Math.max(1, Math.min(product.stock, num)));
+                                                }
+                                            }
+                                        }}
+                                        className="w-16 sm:w-20 px-2 py-2 font-semibold text-center text-gray-900 dark:text-white bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    <button
+                                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                                        disabled={quantity >= product.stock}
+                                        className="flex-1 px-3 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                        title="Increase quantity"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                                 <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="flex-1 px-3 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-semibold text-lg"
-                                    title="Decrease quantity"
+                                    onClick={() => {
+                                        const discounted = calculateDiscountedPrice(product.price, product.discountPercentage);
+                                        addToCart(
+                                            {
+                                                id: product.id,
+                                                title: product.title,
+                                                price: discounted,
+                                                thumbnail: product.thumbnail,
+                                            },
+                                            quantity
+                                        );
+                                        setAddedToCart(true);
+                                        setTimeout(() => setAddedToCart(false), 2000);
+                                    }}
+                                    disabled={addedToCart}
+                                    className={`flex-1 font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors touch-manipulation min-h-11 flex items-center justify-center text-base sm:text-lg ${addedToCart
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
+                                        }`}
                                 >
-                                    −
-                                </button>
-                                <span className="px-3 sm:px-4 py-2 font-semibold text-gray-900 dark:text-white">
-                                    {quantity}
-                                </span>
-                                <button
-                                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                                    className="flex-1 px-3 sm:px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-semibold text-lg"
-                                    title="Increase quantity"
-                                >
-                                    +
+                                    {addedToCart ? '✓ Added to Cart' : isInCart(product.id) ? 'Add More to Cart' : 'Add to Cart'}
                                 </button>
                             </div>
-                            <button className="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors touch-manipulation min-h-11 flex items-center justify-center text-base sm:text-lg">
-                                Add to Cart
-                            </button>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                ({product.stock} available)
+                            </p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Recommendations Section */}
-            <div className="mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-gray-200 dark:border-gray-700">
-                {/* Tag-Based Recommendations */}
-                {tagRecommendations.length > 0 && (
-                    <div className="mb-12 sm:mb-16">
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8 px-4 sm:px-0">
-                            Similar Products
-                        </h2>
-                        {loadingRecommendations ? (
-                            <ProductGridSkeleton count={8} />
-                        ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 px-4 sm:px-0">
-                                {tagRecommendations.map((p) => (
-                                    <ProductCard key={p.id} product={p} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
+            {/* Reviews Section */}
+            <ProductReviews
+                product={product}
+                reviewPage={reviewPage}
+                selectedStarFilter={selectedStarFilter}
+                onReviewPageChange={setReviewPage}
+                onStarFilterChange={setSelectedStarFilter}
+            />
 
-                {/* If no recommendations */}
-                {tagRecommendations.length === 0 && (
-                    <div className="text-center px-4 sm:px-0">
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8">
-                            Continue Shopping
-                        </h2>
-                        <Link
-                            href="/products"
-                            className="flex bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-colors touch-manipulation min-h-11 items-center justify-center"
-                        >
-                            View All Products
-                        </Link>
-                    </div>
-                )}
-            </div>
+            {/* Recommendations Section */}
+            <ProductRecommendations
+                tagRecommendations={tagRecommendations}
+                loadingRecommendations={loadingRecommendations}
+            />
         </div>
     );
 }

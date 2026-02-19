@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { PATH } from '@/lib/constants';
+import { useCart } from '@/hooks/useCart';
 
 interface ProductCardProps {
     product: Product;
@@ -14,27 +15,19 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
     const discountedPrice = calculateDiscountedPrice(product.price, product.discountPercentage);
     const [addedToCart, setAddedToCart] = useState(false);
+    const { addToCart } = useCart();
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
-        const existingItem = cartItems.find((item: any) => item.id === product.id);
+        addToCart({
+            id: product.id,
+            title: product.title,
+            price: discountedPrice,
+            thumbnail: product.thumbnail,
+        });
 
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cartItems.push({
-                id: product.id,
-                title: product.title,
-                price: discountedPrice,
-                thumbnail: product.thumbnail,
-                quantity: 1,
-            });
-        }
-
-        localStorage.setItem('cart', JSON.stringify(cartItems));
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);
     };
