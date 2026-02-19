@@ -18,3 +18,10 @@ export const CACHE_DURATION = {
     CATEGORIES: 600, // 10 minutes
     PRODUCT_DETAIL: 600, // 10 minutes
 } as const;
+
+export const PATH = {
+    home: '/',
+    products: '/products',
+    productDetail: (id: number | string) => `/products/${id}`,
+    categories: '/categories',
+}

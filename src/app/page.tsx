@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PATH } from '@/lib/route';
+import { PATH } from '@/lib/constants';
 
 export default function Home() {
   return (

@@ -5,6 +5,7 @@ import { formatPrice, calculateDiscountedPrice } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { PATH } from '@/lib/constants';
 
 interface ProductCardProps {
     product: Product;
@@ -40,7 +41,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     return (
         <div className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md active:shadow-lg dark:border-gray-700 dark:bg-gray-800">
-            <Link href={`/product/${product.id}`}>
+            <Link href={PATH.productDetail(product.id)}>
                 {/* Image Container */}
                 <div className="relative h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <Image

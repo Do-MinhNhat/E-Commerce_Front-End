@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types/product';
 import { formatPrice, calculateDiscountedPrice } from '@/lib/utils';
+import { ProductDetailSkeleton } from '@/components/features/ProductDetailSkeleton';
 
 export default function ProductDetailPage({
     params,
@@ -44,8 +45,8 @@ export default function ProductDetailPage({
 
     if (isLoading) {
         return (
-            <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+            <div>
+                <ProductDetailSkeleton />
             </div>
         );
     }
@@ -178,11 +179,11 @@ export default function ProductDetailPage({
                             Product Details
                         </h3>
                         <dl className="space-y-2 text-xs sm:text-sm">
-                            <div className="flex justify-between">
+                            <div className="flex gap-4">
                                 <dt className="text-gray-600 dark:text-gray-400">Brand:</dt>
                                 <dd className="text-gray-900 dark:text-white font-medium">{product.brand}</dd>
                             </div>
-                            <div className="flex justify-between">
+                            <div className="flex gap-4">
                                 <dt className="text-gray-600 dark:text-gray-400">Stock:</dt>
                                 <dd className="text-gray-900 dark:text-white font-medium">{product.stock} available</dd>
                             </div>
