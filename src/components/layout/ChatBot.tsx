@@ -85,6 +85,29 @@ export function ChatBot() {
     const formatTime = (date: Date) =>
         date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
+    /** Strip [ID:x] tags and clean up whitespace */
+    const cleanContent = (text: string) =>
+        text.replace(/\[ID:\d+\]/g, '').replace(/\s{2,}/g, ' ').trim();
+
+    /** Render simple markdown-like formatting */
+    const renderText = (text: string) => {
+        return text.split('\n').map((line, i) => {
+            // Bold: **text**
+            const parts = line.split(/(\*\*[^*]+\*\*)/g);
+            return (
+                <span key={i}>
+                    {i > 0 && <br />}
+                    {parts.map((part, j) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={j}>{part.slice(2, -2)}</strong>;
+                        }
+                        return <span key={j}>{part}</span>;
+                    })}
+                </span>
+            );
+        });
+    };
+
     return (
         <>
             {/* Floating toggle button */}
@@ -94,12 +117,10 @@ export function ChatBot() {
                 className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             >
                 {isOpen ? (
-                    /* X icon */
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 ) : (
-                    /* Chat bubble icon */
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -132,97 +153,84 @@ export function ChatBot() {
                     </div>
 
                     {/* Messages area */}
-                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ maxHeight: '360px' }}>
+                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4" style={{ maxHeight: '360px' }}>
                         {messages.map((msg) => (
                             <div
                                 key={msg.id}
-                                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                             >
+                                {/* Text bubble */}
                                 <div
-                                    className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${msg.role === 'user'
-                                        ? 'bg-primary text-primary-foreground rounded-br-md'
-                                        : 'bg-muted text-foreground rounded-bl-md'
+                                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === 'user'
+                                        ? 'bg-primary text-primary-foreground rounded-br-sm'
+                                        : 'bg-muted text-foreground rounded-bl-sm'
                                         }`}
                                 >
-                                    {/* Render text with inline product cards */}
-                                    {(() => {
-                                        const productMap = new Map(
-                                            (msg.products ?? []).map((p) => [p.id, p])
-                                        );
-                                        if (productMap.size === 0) {
-                                            return <p className="whitespace-pre-wrap">{msg.content}</p>;
-                                        }
-                                        const segments = msg.content.split(/(\[ID:\d+\])/g);
-                                        return (
-                                            <div className="space-y-2">
-                                                {segments.map((seg, i) => {
-                                                    const idMatch = seg.match(/^\[ID:(\d+)\]$/);
-                                                    if (idMatch) {
-                                                        const product = productMap.get(Number(idMatch[1]));
-                                                        if (!product) return null;
-                                                        const discounted = calculateDiscountedPrice(product.price, product.discountPercentage);
-                                                        return (
-                                                            <Link
-                                                                key={`p-${i}`}
-                                                                href={PATH.productDetail(product.id)}
-                                                                className="flex gap-2.5 rounded-lg border border-border bg-card p-2 transition-colors hover:bg-accent"
-                                                            >
-                                                                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
-                                                                    <Image
-                                                                        src={product.thumbnail}
-                                                                        alt={product.title}
-                                                                        fill
-                                                                        className="object-contain"
-                                                                    />
-                                                                </div>
-                                                                <div className="flex flex-col justify-center overflow-hidden">
-                                                                    <span className="truncate text-xs font-semibold text-foreground">
-                                                                        {product.title}
-                                                                    </span>
-                                                                    <span className="text-[10px] text-muted-foreground uppercase">
-                                                                        {product.category}
-                                                                    </span>
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <span className="text-xs font-bold text-foreground">
-                                                                            {formatPrice(discounted)}
-                                                                        </span>
-                                                                        {product.discountPercentage > 0 && (
-                                                                            <span className="text-[10px] text-muted-foreground line-through">
-                                                                                {formatPrice(product.price)}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </Link>
-                                                        );
-                                                    }
-                                                    const trimmed = seg.trim();
-                                                    if (!trimmed) return null;
-                                                    return <p key={`t-${i}`} className="whitespace-pre-wrap">{trimmed}</p>;
-                                                })}
-                                            </div>
-                                        );
-                                    })()}
-
+                                    <div className="whitespace-pre-wrap">
+                                        {renderText(cleanContent(msg.content))}
+                                    </div>
                                     <span
-                                        className={`mt-1 block text-[10px] ${msg.role === 'user'
-                                            ? 'text-primary-foreground/60'
-                                            : 'text-muted-foreground'
+                                        className={`mt-1.5 block text-[10px] ${msg.role === 'user'
+                                            ? 'text-primary-foreground/50'
+                                            : 'text-muted-foreground/70'
                                             }`}
                                     >
                                         {msg.timestamp && formatTime(msg.timestamp)}
                                     </span>
                                 </div>
+
+                                {/* Product cards - separate from bubble */}
+                                {msg.products && msg.products.length > 0 && (
+                                    <div className="mt-2 w-full max-w-[85%] space-y-1.5">
+                                        {msg.products.map((product) => {
+                                            const discounted = calculateDiscountedPrice(product.price, product.discountPercentage);
+                                            return (
+                                                <Link
+                                                    key={product.id}
+                                                    href={PATH.productDetail(product.id)}
+                                                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-2 shadow-sm transition-all hover:shadow-md hover:border-primary/30"
+                                                >
+                                                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800">
+                                                        <Image
+                                                            src={product.thumbnail}
+                                                            alt={product.title}
+                                                            fill
+                                                            className="object-contain p-0.5"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="truncate text-xs font-medium text-foreground">
+                                                            {product.title}
+                                                        </p>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            <span className="text-xs font-bold text-primary">
+                                                                {formatPrice(discounted)}
+                                                            </span>
+                                                            {product.discountPercentage > 0 && (
+                                                                <span className="text-[10px] text-muted-foreground line-through">
+                                                                    {formatPrice(product.price)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         ))}
 
                         {/* Typing indicator */}
                         {isTyping && (
                             <div className="flex justify-start">
-                                <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-muted px-4 py-3">
-                                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
-                                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
-                                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60" />
+                                <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
+                                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.3s]" />
+                                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.15s]" />
+                                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/50" />
                                 </div>
                             </div>
                         )}

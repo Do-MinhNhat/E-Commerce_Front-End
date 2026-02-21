@@ -22,6 +22,7 @@ interface ProductEmbedding {
 }
 
 let store: ProductEmbedding[] | null = null;
+let storePromise: Promise<ProductEmbedding[]> | null = null;
 
 function productToText(p: Product): string {
     return `${p.title} - ${p.brand ?? ''} - ${p.category} - $${p.price} - ${p.description} - ${(p.tags ?? []).join(', ')}`;
@@ -29,23 +30,37 @@ function productToText(p: Product): string {
 
 async function embedTexts(texts: string[]): Promise<number[][]> {
     const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
-    const BATCH_SIZE = 100; // Gemini API limit: max 100 requests per batch
+    const BATCH_SIZE = 99;
+    const MAX_RETRIES = 3;
     const allEmbeddings: number[][] = [];
 
     for (let i = 0; i < texts.length; i += BATCH_SIZE) {
         if (i > 0) {
-            // Wait 1 minute between batches to avoid RPM limit (100 RPM)
             console.log(`Waiting 60s before batch ${Math.floor(i / BATCH_SIZE) + 1}...`);
             await new Promise((resolve) => setTimeout(resolve, 60000));
         }
 
         const batch = texts.slice(i, i + BATCH_SIZE);
-        const result = await model.batchEmbedContents({
-            requests: batch.map((text) => ({
-                content: { role: 'user', parts: [{ text }] },
-            })),
-        });
-        allEmbeddings.push(...result.embeddings.map((e) => e.values));
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const result = await model.batchEmbedContents({
+                    requests: batch.map((text) => ({
+                        content: { role: 'user', parts: [{ text }] },
+                    })),
+                });
+                allEmbeddings.push(...result.embeddings.map((e) => e.values));
+                break; // Success - exit retry loop
+            } catch (error) {
+                const isQuotaError = error instanceof Error && error.message.includes('429');
+                if (isQuotaError && attempt < MAX_RETRIES) {
+                    console.log(`Quota hit, retrying in 60s... (attempt ${attempt}/${MAX_RETRIES})`);
+                    await new Promise((resolve) => setTimeout(resolve, 60000));
+                } else {
+                    throw error; // Final attempt or non-retryable error
+                }
+            }
+        }
     }
 
     return allEmbeddings;
@@ -54,6 +69,19 @@ async function embedTexts(texts: string[]): Promise<number[][]> {
 async function getStore(): Promise<ProductEmbedding[]> {
     if (store) return store;
 
+    // Prevent concurrent computations (race condition guard)
+    if (storePromise) return storePromise;
+
+    storePromise = computeStore();
+    try {
+        return await storePromise;
+    } catch (error) {
+        storePromise = null; // Allow retry on failure
+        throw error;
+    }
+}
+
+async function computeStore(): Promise<ProductEmbedding[]> {
     // Check if embeddings.json exists
     if (existsSync(EMBEDDINGS_FILE)) {
         try {
@@ -90,7 +118,6 @@ async function getStore(): Promise<ProductEmbedding[]> {
         console.log(`✅ Saved ${store.length} embeddings to ${EMBEDDINGS_FILE}`);
     } catch (error) {
         console.error('Failed to save embeddings cache:', error);
-        // Continue anyway - cache save is not critical
     }
 
     console.log(`✅ Product embeddings initialized: ${store.length} products`);
