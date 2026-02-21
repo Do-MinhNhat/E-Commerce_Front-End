@@ -92,7 +92,7 @@ export function Header() {
                                 {searchResults.map((product) => (
                                     <Link
                                         key={product.id}
-                                        href={`/products/${product.id}`}
+                                        href={PATH.productDetail(product.id)}
                                         onClick={() => {
                                             setSearchQuery('');
                                         }}
@@ -154,28 +154,22 @@ export function Header() {
                             Home
                         </Link>
                         <Link
-                            href="/products"
+                            href={ PATH.products }
                             className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
                         >
                             Products
                         </Link>
                         <Link
-                            href="/categories"
+                            href={PATH.categories}
                             className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
                         >
                             Categories
-                        </Link>
-                        <Link
-                            href="/profile/account"
-                            className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
-                        >
-                            Profile
                         </Link>
                     </nav>
 
                     {/* Checkout Link */}
                     <Link
-                        href="/checkout"
+                        href={PATH.checkout}
                         className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors relative"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,7 +231,7 @@ export function Header() {
                                     {searchResults.map((product) => (
                                         <Link
                                             key={product.id}
-                                            href={`/products/${product.id}`}
+                                            href={ PATH.productDetail(product.id) }
                                             onClick={() => {
                                                 setSearchQuery('');
                                                 setMobileMenuOpen(false);
