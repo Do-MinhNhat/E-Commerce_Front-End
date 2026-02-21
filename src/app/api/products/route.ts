@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchProducts, fetchProductById, fetchCategories, searchProducts } from '@/services/productService';
+import { fetchProducts, searchProducts } from '@/services/productService';
 
 /**
  * GET /api/products

@@ -56,6 +56,4 @@ export interface ProductFilters {
     skip?: number;
     limit?: number;
     category?: string;
-    sortBy?: string;
-    order?: 'asc' | 'desc';
 }

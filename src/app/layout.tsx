@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ChatBot } from "@/components/layout/ChatBot";
+import { initializeEmbeddings } from "@/lib/initEmbeddings";
 
 export const metadata: Metadata = {
   title: "EStore - Your Online Shopping Destination",
   description: "Shop amazing products at unbeatable prices. Browse electronics, clothing, home & garden, and more.",
 };
+
+// Initialize embeddings once at module load (server startup)
+initializeEmbeddings();
 
 export default function RootLayout({
   children,
@@ -21,6 +26,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <ChatBot />
       </body>
     </html>
   );
