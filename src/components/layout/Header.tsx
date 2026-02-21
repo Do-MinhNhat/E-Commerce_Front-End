@@ -52,10 +52,11 @@ export function Header() {
                 <div className="flex h-16 items-center justify-between gap-4">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 min-w-fit">
-                        <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-600 to-blue-700" />
-                        <span className="font-bold text-lg text-gray-900 dark:text-white hidden sm:inline">
-                            EStore
-                        </span>
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
+                            <span className="font-bold text-lg text-white dark:text-white hidden sm:inline">
+                                EStore
+                            </span>
+                        </div>
                     </Link>
 
                     {/* Search Bar - Hidden on mobile */}
@@ -297,28 +298,21 @@ export function Header() {
                             Home
                         </Link>
                         <Link
-                            href="/product"
+                            href={PATH.products}
                             className="block px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             Products
                         </Link>
                         <Link
-                            href="/category"
+                            href={PATH.categories}
                             className="block px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             Categories
                         </Link>
                         <Link
-                            href="/profile/account"
-                            className="block px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Profile
-                        </Link>
-                        <Link
-                            href={ PATH.checkout }
+                            href={PATH.checkout}
                             className="flex items-center justify-between px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >

@@ -1,36 +1,87 @@
-# E-Commerce Front-End
+# 🛒 EStore — E-Commerce Front-End
 
-A modern, fully refactored e-commerce application built with Next.js 16, React 19, TypeScript, and Tailwind CSS. Integrated with DummyJSON API for product data.
+A modern, responsive e-commerce storefront built with **Next.js 16**, **React 19**, **TypeScript**, and **Tailwind CSS 4**. Powered by the [DummyJSON](https://dummyjson.com) API for product data.
 
-## 🚀 Features
+![Next.js](https://img.shields.io/badge/Next.js-16.1.4-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19.2.3-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss)
 
-- ✅ **Latest Next.js Architecture** - Using App Router with route groups
-- ✅ **DummyJSON API Integration** - Real product data with images, ratings, and stock info
-- ✅ **Responsive Design** - Mobile-first approach with Tailwind CSS
-- ✅ **Type-Safe** - Full TypeScript support with proper interfaces
-- ✅ **API Routes** - Backend endpoints for products and categories
-- ✅ **Service Layer** - Clean separation of concerns with services
-- ✅ **Caching** - Implemented caching strategy for better performance
-- ✅ **Loading States** - Skeleton loaders for better UX
-- ✅ **Product Filtering** - Filter by categories
-- ✅ **Search** - Full-text search capability
-- ✅ **Pagination** - Handle large product lists efficiently
-- ✅ **Dark Mode** - Built-in dark mode support
+---
 
-## 📦 Tech Stack
+## ✨ Features
 
-- **Framework**: Next.js 16.1.4
-- **React**: 19.2.3
-- **TypeScript**: 5
-- **Styling**: Tailwind CSS 4
-- **Icons**: Lucide React
-- **API Source**: DummyJSON API
+- **Product Catalog** — Browse products with pagination and category filtering
+- **Product Detail** — Image gallery, reviews, ratings, discount pricing, and tag-based recommendations
+- **Search** — Real-time search with dropdown results and a dedicated search results page
+- **Shopping Cart** — Add/remove items, adjust quantities, stock validation (persisted in `localStorage`)
+- **Checkout** — Order summary with stock-aware quantity controls
+- **Categories** — Browse and filter by product categories
+- **Responsive Design** — Mobile-first layout with dark mode support
+- **Loading States** — Skeleton loaders for products, categories, and detail pages
+- **API Routes** — Server-side proxy endpoints for products, categories, and search
 
-## 🎯 Quick Start
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | [Next.js 16](https://nextjs.org) (App Router) |
+| UI Library | [React 19](https://react.dev) |
+| Language | [TypeScript 5](https://www.typescriptlang.org) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com) |
+| Components | [shadcn/ui](https://ui.shadcn.com) (New York style) |
+| Icons | [Lucide React](https://lucide.dev) |
+| Data Source | [DummyJSON API](https://dummyjson.com) |
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx              # Root layout (Header + Footer)
+│   ├── page.tsx                # Home page (hero, categories, CTA)
+│   ├── (Auth)/
+│   │   └── login/              # Login page
+│   ├── (Shopping)/
+│   │   ├── categories/         # Category listing & detail pages
+│   │   ├── checkout/           # Cart checkout page
+│   │   ├── products/           # Product listing & detail pages
+│   │   │   ├── components/     # ProductRecommendations, ProductReviews
+│   │   │   └── [slug]/         # Dynamic product detail
+│   │   └── search/             # Search results page
+│   └── api/
+│       ├── categories/         # GET /api/categories
+│       └── products/           # GET /api/products, GET /api/products/[id]
+├── components/
+│   ├── features/               # CategoryFilter, Pagination, ProductCard, Skeletons
+│   ├── layout/                 # Header, Footer
+│   └── ui/                     # shadcn/ui primitives (Skeleton, etc.)
+├── hooks/
+│   ├── useCart.ts              # Cart state management (localStorage + events)
+│   └── useLocalStorage.ts      # Generic localStorage hook
+├── lib/
+│   ├── constants.ts            # API config, pagination, cache durations, paths
+│   └── utils.ts                # Utility functions (formatPrice, etc.)
+├── services/
+│   └── productService.ts       # API client with in-memory caching
+└── types/
+    ├── cart.ts                 # CartItem interface
+    ├── category.ts             # Category interfaces
+    └── product.ts              # Product, Review, ProductFilters interfaces
+```
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ installed
-- npm or yarn package manager
+
+- **Node.js** 18.17 or later
+- **npm**, **yarn**, **pnpm**, or **bun**
 
 ### Installation
 
@@ -46,7 +97,6 @@ npm install
 ### Development
 
 ```bash
-# Run development server
 npm run dev
 ```
 
@@ -55,140 +105,68 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Production Build
 
 ```bash
-# Build for production
 npm run build
-
-# Start production server
 npm start
 ```
 
-## 📁 Project Structure
+### Linting
 
-See [REFACTORING_GUIDE.md](./REFACTORING_GUIDE.md) for detailed structure and architecture information.
-
-```
-src/
-├── app/                    # Next.js App Router
-├── components/             # React components
-├── services/              # API service layer
-├── lib/                   # Utilities and constants
-├── types/                 # TypeScript interfaces
-└── hooks/                 # Custom React hooks
+```bash
+npm run lint
 ```
 
-## 🛣️ Available Routes
+---
 
-| Route | Description |
-|-------|-------------|
-| `/` | Home page with featured categories |
-| `/products` | Product listing with filtering & pagination |
-| `/products/:id` | Product detail page |
-| `/category/:slug` | Products filtered by category |
-| `/login` | Login page (placeholder) |
-| `/profile/:slug` | User profile page (placeholder) |
+## 🔌 API Routes
 
-## 🔌 API Endpoints
+The app proxies requests through Next.js API routes to the DummyJSON API:
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | Get all products (with filters) |
-| GET | `/api/products/:id` | Get single product |
-| GET | `/api/categories` | Get all categories |
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/products` | GET | List products (supports `skip`, `limit`, `category`, `q` params) |
+| `/api/products/[id]` | GET | Get a single product by ID |
+| `/api/categories` | GET | List all product categories |
 
 ### Query Parameters
 
-**GET /api/products**
-- `skip` - Number of products to skip (default: 0)
-- `limit` - Number of products to return (default: 12)
-- `category` - Filter by category name
-- `q` - Search query
+- `skip` — Number of products to skip (default: `0`)
+- `limit` — Products per page (default: `12`)
+- `category` — Filter by category slug
+- `q` — Search query string
 
-Example:
-```
-/api/products?skip=0&limit=12&category=electronics
-/api/products?q=laptop&limit=20
-```
+---
 
-## 🎨 Styling
+## 🛒 Cart System
 
-- **Tailwind CSS** - Utility-first CSS framework
-- **Dark Mode** - Full dark mode support with `dark:` prefix
-- **Responsive** - Mobile-first responsive design
-- **Custom Components** - Reusable UI components in `src/components/`
+The cart is fully client-side and uses `localStorage` for persistence:
 
-## 📝 Key Components
+- **Cross-component sync** — Cart updates are broadcast via custom DOM events (`cart-updated`) so all components stay in sync
+- **Stock validation** — Checkout page fetches real-time stock data and caps quantities accordingly
+- **Hook API** — `useCart()` exposes `addToCart`, `removeFromCart`, `updateQuantity`, `clearCart`, `getTotalPrice`, `getTotalItems`, and `isInCart`
 
-### Layout
-- `Header.tsx` - Navigation header with search
-- `Footer.tsx` - Footer with links
+---
 
-### Features
-- `ProductCard.tsx` - Product card component
-- `CategoryFilter.tsx` - Category filter dropdown
-- `Pagination.tsx` - Pagination controls
-- `ProductGridSkeleton.tsx` - Loading skeleton
+## ⚡ Caching Strategy
 
-## 🔄 Data Flow
+| Data | Cache Duration | Method |
+|---|---|---|
+| Product listings | 5 minutes | In-memory + Next.js `revalidate` |
+| Categories | 10 minutes | In-memory + Next.js `revalidate` |
+| Product detail | 10 minutes | In-memory + Next.js `revalidate` |
 
-```
-User Interaction
-    ↓
-Page Component (Client)
-    ↓
-Fetch from API Route (/api/*)
-    ↓
-Service Layer (productService.ts)
-    ↓
-DummyJSON API
-    ↓
-Response → Cache → Component → UI
-```
+---
 
-## 🚦 Getting Help
+## 📜 Available Scripts
 
-1. **Check REFACTORING_GUIDE.md** - Detailed structure and examples
-2. **Review Component Source** - Code comments and examples
-3. **API Documentation** - DummyJSON API docs at https://dummyjson.com
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development server with hot reload |
+| `npm run build` | Create optimized production build |
+| `npm start` | Run the production server |
+| `npm run lint` | Run ESLint checks |
 
-## 🤝 Development Guidelines
-
-### Before Creating New Features
-1. Check existing patterns in the codebase
-2. Follow the established folder structure
-3. Add proper TypeScript types
-4. Use the service layer for API calls
-5. Create loading/error states
-
-### Code Style
-- Use TypeScript for type safety
-- Follow React best practices
-- Use functional components with hooks
-- Prefer server components, mark client components with `'use client'`
-- Use utility-first CSS with Tailwind
-
-## 🔮 Future Enhancements
-
-- [ ] Authentication system (NextAuth.js)
-- [ ] Shopping cart functionality
-- [ ] User wishlist
-- [ ] Order management
-- [ ] Payment integration
-- [ ] Admin dashboard
-- [ ] Product reviews
-- [ ] Advanced search filters
-- [ ] Social sharing
-- [ ] Email notifications
+---
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
-
-## 📞 Support
-
-For detailed information about the refactoring, see [REFACTORING_GUIDE.md](./REFACTORING_GUIDE.md)
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is private and not published to npm.

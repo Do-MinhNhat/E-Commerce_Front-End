@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { PATH } from '@/lib/constants';
 
 interface Category {
     name: string;
@@ -72,7 +73,7 @@ export default function CategoriesPage() {
                         No categories available
                     </p>
                     <Link
-                        href="/product"
+                        href={ PATH.products }
                         className="inline-block bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 px-6 sm:px-8 rounded-lg transition-colors"
                     >
                         Browse All Products
@@ -85,7 +86,7 @@ export default function CategoriesPage() {
                         {categories.map((category) => (
                             <Link
                                 key={category.slug}
-                                href={`/product?category=${category.slug}`}
+                                href={`${PATH.products}?category=${category.slug}`}
                                 className="group"
                             >
                                 <div className="h-48 sm:h-56 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 shadow-sm hover:shadow-md active:shadow-lg transition-shadow touch-manipulation flex items-center justify-center p-4 sm:p-6">
@@ -134,7 +135,7 @@ export default function CategoriesPage() {
                             Browse all products and discover more amazing items
                         </p>
                         <Link
-                            href="/products"
+                            href={ PATH.products }
                             className="inline-block bg-white text-blue-600 hover:bg-blue-50 active:bg-gray-100 font-semibold py-2 sm:py-3 px-6 sm:px-8 rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center justify-center text-base"
                         >
                             View All Products

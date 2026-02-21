@@ -19,7 +19,7 @@ export function CategoryFilter({
         <div className="relative w-full sm:w-auto">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors min-h-[44px] sm:min-h-auto"
+                className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors min-h-11 sm:min-h-auto"
             >
                 <span className="truncate">
                     {selectedCategory
@@ -28,7 +28,7 @@ export function CategoryFilter({
                     }
                 </span>
                 <svg
-                    className={`h-4 w-4 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -44,7 +44,7 @@ export function CategoryFilter({
                             onCategoryChange(undefined);
                             setIsOpen(false);
                         }}
-                        className="block w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors min-h-[44px] flex items-center"
+                        className="block w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors min-h-11 items-center"
                     >
                         All Categories
                     </button>
@@ -55,7 +55,7 @@ export function CategoryFilter({
                                 onCategoryChange(category.slug);
                                 setIsOpen(false);
                             }}
-                            className={`block w-full px-4 py-3 text-left text-sm transition-colors min-h-[44px] flex items-center ${selectedCategory === category.slug
+                            className={`block w-full px-4 py-3 text-left text-sm transition-colors min-h-[44px] items-center ${selectedCategory === category.slug
                                 ? 'bg-blue-50 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
                                 : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                 }`}

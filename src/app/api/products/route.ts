@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         const query = searchParams.get('q') ?? undefined;
 
         if (query) {
-            const results = await searchProducts(query, limit);
+            const results = await searchProducts(query, limit, skip);
             return NextResponse.json(results);
         }
 

@@ -114,9 +114,9 @@ export async function fetchCategories(): Promise<string[]> {
 /**
  * Search products by query
  */
-export async function searchProducts(query: string, limit: number = 12): Promise<ProductsResponse> {
-    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.PRODUCTS_ENDPOINT}/search?q=${encodeURIComponent(query)}&limit=${limit}`;
-    const cacheKey = getCacheKey('search', { q: query, limit });
+export async function searchProducts(query: string, limit: number = 12, skip: number = 0): Promise<ProductsResponse> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.PRODUCTS_ENDPOINT}/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}`;
+    const cacheKey = getCacheKey('search', { q: query, limit, skip });
 
     return fetchWithCache<ProductsResponse>(url, cacheKey, CACHE_DURATION.PRODUCTS);
 }
