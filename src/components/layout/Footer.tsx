@@ -11,6 +11,9 @@ export function Footer() {
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             Your trusted online shopping destination for quality products at great prices.
                         </p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            Gmail: dominhnhat328@gmail.com
+                        </p>
                     </div>
 
                     {/* Products */}
@@ -54,11 +57,10 @@ export function Footer() {
 
                 {/* Bottom */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 flex flex-col md:flex-row justify-between items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                    <p>&copy; 2024 EStore. All rights reserved.</p>
+                    <p>&copy; 2026 EStore. All rights reserved.</p>
                     <div className="flex gap-4 sm:gap-6 mt-4 md:mt-0">
-                        <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors py-1">Twitter</a>
-                        <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors py-1">Facebook</a>
-                        <a href="#" className="hover:text-gray-900 dark:hover:text-white transition-colors py-1">Instagram</a>
+                        <a href="https://www.facebook.com/profile.php?id=100011246080118" className="hover:text-gray-900 dark:hover:text-white transition-colors py-1">Facebook</a>
+                        <a href="https://github.com/Do-MinhNhat/E-Commerce_Front-End" className="hover:text-gray-900 dark:hover:text-white transition-colors py-1">Github</a>
                     </div>
                 </div>
             </div>
