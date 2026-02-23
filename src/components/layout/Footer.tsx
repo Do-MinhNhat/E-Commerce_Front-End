@@ -11,6 +11,7 @@ export function Footer() {
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             Your trusted online shopping destination for quality products at great prices.
                         </p>
+                        <br />
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             Gmail: dominhnhat328@gmail.com
                         </p>
